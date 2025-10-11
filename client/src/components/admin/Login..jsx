@@ -10,10 +10,39 @@ import {
   useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const Login = () => {
+  const { axios, setToken,} = useAppContext();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { data } = await axios.post("/api/admin/login", {
+        email,
+        password,
+      });
+
+      if (data.success) {
+        toast.success("Login successful!");
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+
+      } else {
+        toast.error(data.message || "Invalid credentials");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
 
   return (
     <Box
@@ -22,7 +51,6 @@ const Login = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
         p: 2,
       }}
     >
@@ -57,13 +85,16 @@ const Login = () => {
           Admin Login
         </Typography>
 
-        <form>
+        <form onSubmit={handleSubmit}>
           <TextField
             label="Email Address"
             type="email"
             fullWidth
             margin="normal"
             variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: 3,
@@ -77,6 +108,9 @@ const Login = () => {
             fullWidth
             margin="normal"
             variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: 3,
@@ -97,6 +131,7 @@ const Login = () => {
           />
 
           <Button
+            type="submit"
             variant="contained"
             fullWidth
             sx={{
