@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Clock,
   Calendar,
@@ -8,33 +8,84 @@ import {
   Share2,
   Bookmark,
 } from "lucide-react";
-import { blog_data } from "../assets/assets";
-import { useNavigate } from "react-router-dom";
-import { comments_data } from "../assets/assets";
+import { useAppContext } from "../context/AppContext";
 import Loader from "../components/Loader";
+import toast from "react-hot-toast";
+import DOMPurify from "dompurify";
 
 const Blog = () => {
   const navigate = useNavigate();
-
   const { id } = useParams();
+  const { axios } = useAppContext();
+
   const [data, setData] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [name, setName] = useState("");
+  const [content, setContent] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
-
-  const [commentName, setCommentName] = useState("");
-  const [commentText, setCommentText] = useState("");
   const [commentSubmitted, setCommentSubmitted] = useState(false);
 
-  useEffect(() => {
-    const fetchBlogData = () => {
-      const foundData = blog_data.find((item) => item._id === id);
-      setData(foundData);
-      setTimeout(() => setIsVisible(true), 100);
-    };
+  // ✅ Fetch single blog
+  const fetchBlogData = async () => {
+    try {
+      const { data } = await axios.get(`/api/blog/${id}`);
+      data.success ? setData(data.blog) : toast.error(data.message);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
+  // ✅ Fetch comments
+  const fetchComments = async () => {
+    try {
+      const { data } = await axios.post("/api/blog/comments", { blogId: id });
+      if (data.success) {
+        setComments(data.comments);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // ✅ Add comment
+  const addComment = async (e) => {
+    e.preventDefault();
+    if (!name.trim() || !content.trim()) {
+      toast.error("Please fill out all fields");
+      return;
+    }
+
+    try {
+      const { data } = await axios.post("/api/blog/add-comment", {
+        blog: id,
+        name,
+        content,
+      });
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setContent("");
+        setCommentSubmitted(true);
+        fetchComments(); // refresh comments
+        setTimeout(() => setCommentSubmitted(false), 3000);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // ✅ Initial fetch
+  useEffect(() => {
     fetchBlogData();
+    fetchComments();
   }, [id]);
 
+  // ✅ Scroll progress
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight =
@@ -45,71 +96,27 @@ const Blog = () => {
         setReadingProgress(progress);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ✅ Fade-in animation
+  useEffect(() => {
+    setTimeout(() => setIsVisible(true), 100);
+  }, []);
+
+  // ✅ Date formatter
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return date.toLocaleDateString("en-US", options);
-  };
-
-  const parseHtmlContent = (html) => {
-    if (!html) return [];
-
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
-    const elements = [];
-
-    Array.from(temp.childNodes).forEach((node, index) => {
-      if (node.nodeType === 1) {
-        const tag = node.tagName.toLowerCase();
-        const text = node.textContent;
-
-        if (tag === "h1") {
-          elements.push(
-            <h1
-              key={`h1-${index}`}
-              className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent leading-tight"
-            >
-              {text}
-            </h1>
-          );
-        } else if (tag === "h2") {
-          elements.push(
-            <h2
-              key={`h2-${index}`}
-              className="text-2xl md:text-3xl font-bold mt-12 mb-4 text-gray-800 flex items-center gap-3"
-            >
-              <span className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></span>
-              {text}
-            </h2>
-          );
-        } else if (tag === "p") {
-          const isBold = node.querySelector("strong") !== null;
-          elements.push(
-            <p
-              key={`p-${index}`}
-              className={`text-lg leading-relaxed mb-6 text-gray-700 ${
-                isBold ? "font-semibold text-gray-900 mt-8" : ""
-              }`}
-            >
-              {text}
-            </p>
-          );
-        }
-      }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
-
-    return elements;
   };
 
-  if (!data) {
-    return <Loader/>
-  }
+  if (!data) return <Loader />;
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
@@ -152,7 +159,7 @@ const Blog = () => {
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        {/* Category Badge */}
+        {/* Category & Info */}
         <div className="flex items-center gap-3 mb-6">
           {data.category && (
             <>
@@ -164,7 +171,7 @@ const Blog = () => {
             </>
           )}
           <span className="text-sm text-gray-500 flex items-center gap-2">
-            <Clock className="w-4 h-4" />5 min read
+            <Clock className="w-4 h-4" /> 5 min read
           </span>
         </div>
 
@@ -212,12 +219,13 @@ const Blog = () => {
           </div>
         )}
 
-        {/* Content */}
-        <article className="prose prose-lg max-w-none">
-          <div className="space-y-6">
-            {data.description && parseHtmlContent(data.description)}
-          </div>
-        </article>
+        {/* Blog Content (sanitized HTML) */}
+        <article
+          className="prose prose-lg max-w-none text-gray-700"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(data.description || ""),
+          }}
+        />
 
         {/* Divider */}
         <div className="my-16 flex items-center justify-center">
@@ -225,87 +233,54 @@ const Blog = () => {
           <div className="mx-4 w-2 h-2 bg-gray-300 rounded-full" />
           <div className="h-px w-32 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
         </div>
-
-        
       </main>
+
       {/* Comments Section */}
       <section className="max-w-4xl mx-auto px-6 pb-24 mt-16 border-t border-gray-100 pt-12">
         <h2 className="text-3xl font-bold mb-8 text-gray-900 flex items-center gap-3">
-          💬 Comments
+          💬 Comments{" "}
           <span className="text-sm text-gray-400 font-normal">
-            (
-            {
-              comments_data.filter(
-                (c) => c.blog._id === data._id && c.isApproved
-              ).length
-            }
-            )
+            ({comments.filter((c) => c.isApproved).length})
           </span>
         </h2>
 
         {/* List of Approved Comments */}
         <div className="space-y-6 mb-12">
-          {comments_data
-            .filter(
-              (comment) => comment.blog._id === data._id && comment.isApproved
-            )
-            .map((comment) => (
-              <div
-                key={comment._id}
-                className="p-5 rounded-xl border border-gray-100 bg-gray-50 hover:shadow-sm transition-all"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-900">
-                    {comment.name}
-                  </h4>
-                  <span className="text-xs text-gray-400">
-                    {new Date(comment.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
-                <p className="text-gray-700 leading-relaxed">
-                  {comment.content}
-                </p>
-              </div>
-            ))}
-
-          {/* No comments yet */}
-          {comments_data.filter((c) => c.blog._id === data._id && c.isApproved)
-            .length === 0 && (
+          {comments.filter((c) => c.isApproved).length === 0 ? (
             <p className="text-gray-500 italic">
               No comments yet. Be the first to comment!
             </p>
+          ) : (
+            comments
+              .filter((comment) => comment.isApproved)
+              .map((comment) => (
+                <div
+                  key={comment._id}
+                  className="p-5 rounded-xl border border-gray-100 bg-gray-50 hover:shadow-sm transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">
+                      {comment.name}
+                    </h4>
+                    <span className="text-xs text-gray-400">
+                      {new Date(comment.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    {comment.content}
+                  </p>
+                </div>
+              ))
           )}
         </div>
 
         {/* Add Comment Form */}
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!commentName.trim() || !commentText.trim()) {
-              alert("Please fill out all fields");
-              return;
-            }
-
-            const newComment = {
-              _id: Date.now().toString(),
-              blog: { _id: data._id },
-              name: commentName,
-              content: commentText,
-              isApproved: false,
-              createdAt: new Date().toISOString(),
-            };
-
-            console.log("📝 New comment submitted:", newComment);
-            setCommentSubmitted(true);
-            setCommentName("");
-            setCommentText("");
-
-            setTimeout(() => setCommentSubmitted(false), 3000);
-          }}
+          onSubmit={addComment}
           className="p-6 bg-white border border-gray-200 rounded-2xl shadow-sm"
         >
           <h3 className="text-2xl font-semibold mb-6 text-gray-900">
@@ -319,8 +294,8 @@ const Blog = () => {
             <input
               type="text"
               className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={commentName}
-              onChange={(e) => setCommentName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
             />
           </div>
@@ -332,8 +307,8 @@ const Blog = () => {
             <textarea
               rows="4"
               className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               placeholder="Write your comment..."
             ></textarea>
           </div>
@@ -353,7 +328,7 @@ const Blog = () => {
         </form>
       </section>
 
-      {/* Floating Action Button */}
+      {/* Floating Scroll-To-Top Button */}
       <button
         className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-2xl hover:scale-110 transition-all flex items-center justify-center group"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

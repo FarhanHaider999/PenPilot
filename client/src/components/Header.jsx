@@ -1,8 +1,22 @@
-import React from "react";
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
 import { assets } from "../assets/assets";
+import { useAppContext } from "../context/AppContext";
 
 const Header = () => {
+  const { setInput, input } = useAppContext();
+  const inputRef = useRef();
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    setInput(inputRef.current.value);
+  };
+
+  const onClearHandler = () => {
+    inputRef.current.value = "";
+    setInput("");
+  };
+
   return (
     <div className="relative mx-8 sm:mx-16 xl:mx-24 mt-24 mb-16 text-gray-800">
       {/* Decorative pastel blobs */}
@@ -53,19 +67,30 @@ const Header = () => {
           clarity, and creativity.
         </motion.p>
 
-        {/* Search Bar (unchanged) */}
+        {/* Search Bar with Clear functionality */}
         <motion.form
+          onSubmit={onSubmitHandler}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
           className="mt-10 flex justify-between items-center max-w-lg mx-auto border border-gray-200 rounded-full bg-white shadow-sm hover:shadow-md transition-all overflow-hidden"
         >
           <input
+            ref={inputRef}
             type="text"
             placeholder="Search for blogs..."
             required
             className="w-full px-5 py-3 text-gray-700 placeholder-gray-400 outline-none"
           />
+          {input && (
+            <button
+              type="button"
+              onClick={onClearHandler}
+              className="text-gray-500 hover:text-gray-700 font-medium px-4 py-3 transition-colors"
+            >
+              Clear
+            </button>
+          )}
           <button
             type="submit"
             className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium px-8 py-3 rounded-full hover:shadow-lg hover:scale-[1.03] transition-transform"
