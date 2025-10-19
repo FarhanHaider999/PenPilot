@@ -2,7 +2,7 @@ import client from "../configs/imageKit.js";
 import Blog from "../models/Blogs.js";
 import fs from "fs";
 
-//For Adding Blogs
+// Add Blog
 export const addBlog = async (req, res) => {
   try {
     const { title, subTitle, description, category, isPublished } = JSON.parse(
@@ -16,13 +16,14 @@ export const addBlog = async (req, res) => {
         .json({ success: false, message: "Missing required fields" });
     }
 
-    // Use fs.createReadStream for new SDK
+    // Upload image to ImageKit
     const response = await client.files.upload({
-      file: fs.createReadStream(imageFile.path), // <- new required format
+      file: fs.createReadStream(imageFile.path),
       fileName: imageFile.originalname,
       folder: "/blogs",
     });
 
+    // Optimize image
     const optimizedImageUrl = client.helper.buildSrc({
       urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
       src: response.filePath,
@@ -33,67 +34,105 @@ export const addBlog = async (req, res) => {
       ],
     });
 
+    // Delete local temp file
+    fs.unlinkSync(imageFile.path);
+
+    // Create blog in DB
     await Blog.create({
       title,
       subTitle,
       description,
       category,
       image: optimizedImageUrl,
+      author: req.user.id,
       isPublished,
     });
 
-    res.json({ success: true, message: "Blog added successfully" });
+    return res
+      .status(201)
+      .json({ success: true, message: "Blog added successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-//Getting All Blogs
+// Get All Blogs (for logged-in user)
 export const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isPublished: true });
-    res.json({ success: true, blogs });
+    const blogs = await Blog.find({ author: req.user.id }).sort({
+      createdAt: -1,
+    });
+    return res.json({ success: true, blogs });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-//Getting Single Blog
+// Get Single Blog
 export const getBlogById = async (req, res) => {
   try {
-    const {blogId} = req.params;
+    const { blogId } = req.params;
     const blog = await Blog.findById(blogId);
-    if (!blog) {
-      return res.json({ success: false, message: "Blog not found" });
+
+    if (!blog || blog.author.toString() !== req.user.id) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Blog not found or unauthorized" });
     }
-    res.json({ success: true, blog });
+
+    return res.json({ success: true, blog });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
-//Deleting Blog
+
+// Delete Blog
 export const deleteBlogById = async (req, res) => {
   try {
     const { id } = req.body;
-    const blog = await Blog.findByIdAndDelete(id);
+    const blog = await Blog.findById(id);
+
     if (!blog) {
-      return res.json({ success: false, message: "Blog deleted Successfully" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Blog not found" });
     }
-    res.json({ success: true, blog });
+
+    if (blog.author.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized to delete" });
+    }
+
+    await blog.deleteOne();
+
+    return res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-//Toggle Blog Published Status
+// Toggle Blog Publish Status
 export const togglePublish = async (req, res) => {
   try {
     const { id } = req.body;
     const blog = await Blog.findById(id);
+
+    if (!blog || blog.author.toString() !== req.user.id) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Blog not found or unauthorized" });
+    }
+
     blog.isPublished = !blog.isPublished;
     await blog.save();
-    res.json({ success: true, message: "Blog status updated" });
+
+    return res.json({
+      success: true,
+      message: "Blog publish status updated",
+      blog,
+    });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

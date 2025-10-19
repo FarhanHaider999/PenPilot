@@ -1,27 +1,33 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const { token } = useAppContext();
 
-  const { navigate, token } = useAppContext();
+  const handleAuthClick = () => {
+    if (token) {
+      navigate("/admin");
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
-    <div className=" flex justify-between items-center py-5 mx-8 sm:mx-20 xl:mx-32">
-      {/* Custom Text Logo */}
+    <div className="flex justify-between items-center py-5 mx-8 sm:mx-20 xl:mx-32">
+      {/* Logo */}
       <h1
-        onClick={() => {
-          navigate("/");
-        }}
+        onClick={() => navigate("/")}
+        role="button"
         className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 cursor-pointer"
       >
         <span className="text-blue-600">Pen</span>Pilot
       </h1>
 
-      {/* Login Button */}
+      {/* Login/Dashboard Button */}
       <button
-        onClick={() => {
-          navigate("/admin");
-        }}
+        onClick={handleAuthClick}
         className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-all cursor-pointer"
       >
         {token ? "Dashboard" : "Login"}

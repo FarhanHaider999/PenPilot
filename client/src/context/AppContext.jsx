@@ -1,55 +1,59 @@
-import React from "react";
-import { useContext } from "react";
-import { createContext } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import {useNavigate} from "react-router-dom";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useEffect } from "react";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  const [token, setToken] = useState(null);
-  const [blogs, setblogs] = useState([]);
-  const [input, setInput] = useState("");
+  // === STATE ===
+  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
 
-  // Getting All Blogs
-  const fetchBlogs = async () => {
-    try {
-      const { data } = await axios.get("/api/blog/all");
-      data.success ? setblogs(data.blogs) : toast.error(data.message);
-    } catch (error) {
-      toast.error(error.message);
+  // === SET AXIOS HEADER WHEN TOKEN CHANGES ===
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      localStorage.setItem("token", token);
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+      localStorage.removeItem("token");
     }
+  }, [token]);
+
+  // === LOGIN ===
+  const login = (newToken) => {
+    if (!newToken) {
+      toast.error("Invalid token");
+      return;
+    }
+    setToken(newToken);
+    toast.success("Login successful!");
+    navigate("/admin");
   };
 
-  useEffect(() => {
-    fetchBlogs();
-    const token = localStorage.getItem("token");
+  // === LOGOUT ===
+  const logout = () => {
+    setToken(null);
+    toast.success("Logged out successfully!");
+    navigate("/");
+  };
 
-    if (token) {
-      setToken(token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-  }, []);
-
+  // === CONTEXT VALUE ===
   const value = {
     axios,
     navigate,
     token,
-    setToken,
-    blogs,
-    setblogs,
-    input,
-    setInput,
+    setToken, // keep for backward use
+    login,
+    logout,
   };
+
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export const useAppContext = () => {
-  return useContext(AppContext);
-};
+// === HOOK ===
+export const useAppContext = () => useContext(AppContext);

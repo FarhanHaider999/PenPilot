@@ -12,10 +12,10 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 const Login = () => {
-  const { axios, setToken,} = useAppContext();
-
+  const { axios, login } = useAppContext(); // ✅ use login() from context
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,17 +25,10 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const { data } = await axios.post("/api/admin/login", {
-        email,
-        password,
-      });
+      const { data } = await axios.post("/api/admin/login", { email, password });
 
-      if (data.success) {
-        toast.success("Login successful!");
-        setToken(data.token);
-        localStorage.setItem("token", data.token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-
+      if (data.success && data.token) {
+        login(data.token); // ✅ uses context login handler
       } else {
         toast.error(data.message || "Invalid credentials");
       }
@@ -95,11 +88,7 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-              },
-            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
           />
 
           <TextField
@@ -111,11 +100,7 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-              },
-            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -153,8 +138,8 @@ const Login = () => {
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
             Forgot your password?{" "}
-            <a
-              href="#"
+            <Link
+              to="#"
               style={{
                 textDecoration: "none",
                 color: theme.palette.primary.main,
@@ -162,13 +147,13 @@ const Login = () => {
               }}
             >
               Reset it
-            </a>
+            </Link>
           </Typography>
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Don’t have an account?{" "}
-            <a
-              href="#"
+            <Link
+              to="/signup"
               style={{
                 textDecoration: "none",
                 color: theme.palette.primary.main,
@@ -176,7 +161,7 @@ const Login = () => {
               }}
             >
               Sign up
-            </a>
+            </Link>
           </Typography>
         </form>
       </Paper>

@@ -7,6 +7,7 @@ const blogSchema = new mongoose.Schema(
     description: { type: String, required: true },
     category: { type: String, required: true },
     image: { type: String, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     isPublished: { type: Boolean, required: true },
   },
   { timestamps: true }
