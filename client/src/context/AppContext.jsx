@@ -11,7 +11,12 @@ export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // === STATE ===
-  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  const [token, setToken] = useState(
+    () => localStorage.getItem("token") || null
+  );
+  const [blogs, setBlogs] = useState([]); // 🧩 store blogs
+  const [loadingBlogs, setLoadingBlogs] = useState(true);
+  const [input, setInput] = useState(""); // for BlogList search
 
   // === SET AXIOS HEADER WHEN TOKEN CHANGES ===
   useEffect(() => {
@@ -24,6 +29,32 @@ export const AppProvider = ({ children }) => {
     }
   }, [token]);
 
+  // === FETCH BLOGS ===
+  const fetchBlogs = async () => {
+    try {
+      setLoadingBlogs(true);
+      const { data } = await axios.get("/api/blog/all");
+      if (data?.success) {
+        setBlogs(data.blogs || []);
+      } else {
+        setBlogs([]);
+        toast.error(data.message || "Failed to load blogs");
+      }
+    } catch (err) {
+      console.error("Error fetching blogs:", err);
+      toast.error("Error fetching blogs");
+      setBlogs([]);
+    } finally {
+      setLoadingBlogs(false);
+    }
+  };
+
+  // === CALL ON MOUNT ===
+ useEffect(() => {
+  fetchBlogs();
+}, [token]);
+
+
   // === LOGIN ===
   const login = (newToken) => {
     if (!newToken) {
@@ -32,6 +63,12 @@ export const AppProvider = ({ children }) => {
     }
     setToken(newToken);
     toast.success("Login successful!");
+
+    // ✅ Fetch all blogs after login
+    setTimeout(() => {
+      fetchBlogs();
+    }, 300);
+
     navigate("/admin");
   };
 
@@ -42,14 +79,23 @@ export const AppProvider = ({ children }) => {
     navigate("/");
   };
 
+  // === REFETCH AFTER ADDING BLOG ===
+  const refreshBlogs = () => fetchBlogs();
+
   // === CONTEXT VALUE ===
   const value = {
     axios,
     navigate,
     token,
-    setToken, // keep for backward use
+    setToken,
     login,
     logout,
+    blogs,
+    loadingBlogs,
+    fetchBlogs,
+    refreshBlogs,
+    input,
+    setInput,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

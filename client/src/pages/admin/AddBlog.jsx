@@ -5,7 +5,7 @@ import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 
 const AddBlog = () => {
-  const { axios } = useAppContext();
+  const { axios, refreshBlogs } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
 
   const editorRef = useRef(null);
@@ -38,6 +38,7 @@ const AddBlog = () => {
 
       if (data.success) {
         toast.success(data.message);
+        refreshBlogs();
         setImage(false);
         setTitle("");
         quillRef.current.root.innerHTML = "";
