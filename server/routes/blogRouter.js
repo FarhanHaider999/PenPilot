@@ -12,9 +12,9 @@ import auth, { optionalAuth } from "../middleware/auth.js";
 const blogRouter = express.Router();
 
 blogRouter.post("/add", upload.single("image"), auth, addBlog);
+blogRouter.post("/toggle-publish", togglePublish);
 blogRouter.get("/all", optionalAuth, getAllBlogs);
 blogRouter.get("/:blogId", getBlogById);
 blogRouter.post("/:blogId", deleteBlogById);
-blogRouter.post("/toggle-publish", auth, togglePublish);
 
 export default blogRouter;

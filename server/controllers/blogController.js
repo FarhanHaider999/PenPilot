@@ -81,9 +81,6 @@ export const deleteBlogById = async (req, res) => {
     const blog = await Blog.findById(id);
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
-    if (blog.author.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
-    }
 
     await blog.deleteOne();
     res.json({ success: true, message: "Blog deleted successfully" });
@@ -99,9 +96,6 @@ export const togglePublish = async (req, res) => {
     const blog = await Blog.findById(id);
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
-    if (blog.author.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
-    }
 
     blog.isPublished = !blog.isPublished;
     await blog.save();

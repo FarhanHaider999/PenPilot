@@ -72,7 +72,7 @@ const BlogCard = ({ blog }) => {
             </svg>
           </motion.button>
           <span className="text-xs text-gray-400 dark:text-gray-500 select-none">
-            ⏱ 2 min read
+            ⏱ 5 min read
           </span>
         </div>
       </div>

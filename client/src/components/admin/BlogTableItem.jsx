@@ -1,10 +1,46 @@
 import React from "react";
 import { assets } from "../../assets/assets";
 import { motion } from "framer-motion";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const BlogTableItem = ({ blog, fetchBlogs, index }) => {
   const { title, createdAt, isPublished } = blog;
   const blogDate = new Date(createdAt);
+  const { axios } = useAppContext();
+
+  const deleteBlog = async () => {
+    const confirm = window.confirm(
+      "Are you sure you want to delete this blog?"
+    );
+    if (!confirm) return;
+    try {
+      const { data } = await axios.post("/api/blog/delete", { id: blog._id });
+      if (data.success) {
+        toast.success(data.message);
+        await fetchBlogs();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const togglePublish = async () => {
+    try {
+      const { data } = await axios.post("/api/blog/toggle-publish", {
+        id: blog._id,
+      });
+      if (data.success) {
+        toast.success(data.message);
+        await fetchBlogs();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <motion.tr
@@ -29,6 +65,7 @@ const BlogTableItem = ({ blog, fetchBlogs, index }) => {
       </td>
       <td className="px-6 py-4 flex items-center gap-3">
         <button
+        onClick={togglePublish}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
             isPublished
               ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -38,6 +75,7 @@ const BlogTableItem = ({ blog, fetchBlogs, index }) => {
           {isPublished ? "Unpublish" : "Publish"}
         </button>
         <img
+          onClick={deleteBlog}
           src={assets.cross_icon}
           alt="delete"
           className="w-5 h-5 opacity-70 hover:opacity-100 hover:scale-110 transition-all cursor-pointer"
