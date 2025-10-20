@@ -16,6 +16,7 @@ import DOMPurify from "dompurify";
 const Blog = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  console.log("🚀 ~ Blog ~ id:", id)
   const { axios } = useAppContext();
 
   const [data, setData] = useState(null);
@@ -36,10 +37,10 @@ const Blog = () => {
     }
   };
 
-  // ✅ Fetch comments
+  // Fetching comments
   const fetchComments = async () => {
     try {
-      const { data } = await axios.post("/api/blog/comments", { blogId: id });
+      const { data } = await axios.get(`/api/blog/comments/${id}`);
       if (data.success) {
         setComments(data.comments);
       } else {
@@ -50,7 +51,7 @@ const Blog = () => {
     }
   };
 
-  // ✅ Add comment
+  // Adding comment
   const addComment = async (e) => {
     e.preventDefault();
     if (!name.trim() || !content.trim()) {
@@ -296,7 +297,6 @@ const Blog = () => {
               className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
             />
           </div>
 

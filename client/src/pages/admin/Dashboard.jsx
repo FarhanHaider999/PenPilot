@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { assets, dashboard_data } from "../../assets/assets";
 import { Activity, MessageSquare, FileText, Newspaper } from "lucide-react";
 import BlogTableItem from "../../components/admin/BlogTableItem";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -11,10 +12,18 @@ const Dashboard = () => {
     drafts: 0,
     recentBlogs: [],
   });
+const { axios } = useAppContext()
 
-  const fetchDashboard = async () => {
-    setDashboardData(dashboard_data);
-  };
+const fetchDashboard = async () => {
+    try {
+        const { data } = await axios.get('/api/admin/dashboard')
+        data.success 
+            ? setDashboardData(data.dashboardData) 
+            : toast.error(data.message)
+    } catch (error) {
+        toast.error(error.message)
+    }
+}
 
   useEffect(() => {
     fetchDashboard();
