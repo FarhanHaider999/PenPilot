@@ -3,10 +3,12 @@ import { assets, blogCategories } from "../../assets/assets";
 import Quill from "quill";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
+import { parse } from "marked";
 
 const AddBlog = () => {
   const { axios, refreshBlogs } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const editorRef = useRef(null);
   const quillRef = useRef(null);
@@ -16,6 +18,26 @@ const AddBlog = () => {
   const [subTitle, setSubTitle] = useState("");
   const [category, setCategory] = useState("Startup");
   const [isPublished, setIsPublished] = useState(false);
+
+  const generateContent = async () => {
+    if (!title) return toast.error("Please enter a title");
+
+    try {
+      setLoading(true);
+      const { data } = await axios.post("/api/blog/generate", {
+        prompt: title,
+      });
+      if (data.success) {
+        quillRef.current.root.innerHTML = parse(data.content);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onSubmitHandler = async (e) => {
     try {
@@ -58,8 +80,6 @@ const AddBlog = () => {
       quillRef.current = new Quill(editorRef.current, { theme: "snow" });
     }
   }, []);
-
-  const generateContent = async () => {};
 
   return (
     <div className="flex-1 min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 overflow-auto py-14 px-6 sm:px-10">
@@ -144,6 +164,7 @@ const AddBlog = () => {
             />
           </div>
           <button
+            disabled={loading}
             type="button"
             onClick={generateContent}
             className="absolute bottom-3 right-3 text-xs text-white bg-black hover:bg-gray-900 px-4 py-1.5 rounded-md flex items-center gap-2 shadow-sm transition"

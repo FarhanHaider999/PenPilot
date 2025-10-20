@@ -3,6 +3,7 @@ import {
   addBlog,
   addComment,
   deleteBlogById,
+  generateContent,
   getAllBlogs,
   getBlogById,
   getBlogComments,
@@ -15,9 +16,10 @@ const blogRouter = express.Router();
 
 blogRouter.post("/add", upload.single("image"), auth, addBlog);
 blogRouter.post("/toggle-publish", togglePublish);
+blogRouter.post("/generate", auth, generateContent);
 blogRouter.get("/all", optionalAuth, getAllBlogs);
-blogRouter.post('/add-comment', addComment);
-blogRouter.get('/comments/:blogId', getBlogComments);
+blogRouter.post("/add-comment", addComment);
+blogRouter.get("/comments/:blogId", getBlogComments);
 blogRouter.get("/:blogId", getBlogById);
 blogRouter.post("/:blogId", deleteBlogById);
 

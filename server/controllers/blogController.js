@@ -2,6 +2,7 @@ import client from "../configs/imageKit.js";
 import Blog from "../models/Blogs.js";
 import fs from "fs";
 import Comment from "../models/Comment.js";
+import main from "../configs/gemini.js";
 
 // =============== Add Blog ==================
 export const addBlog = async (req, res) => {
@@ -130,6 +131,7 @@ export const togglePublish = async (req, res) => {
   }
 };
 
+// =============== Add Comment ==================
 export const addComment = async (req, res) => {
   try {
     const { blog, name, content } = req.body;
@@ -137,7 +139,6 @@ export const addComment = async (req, res) => {
     // Validate blog exists
     const existingBlog = await Blog.findById(blog);
     if (!existingBlog) {
-      console.log("🚀 ~ addComment ~ existingBlog:", existingBlog)
       return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
@@ -150,7 +151,7 @@ export const addComment = async (req, res) => {
 };
 
 
-
+// =============== Get Blog Comments ==================
 export const getBlogComments = async (req, res) => {
   try {
     const { blogId } = req.params;
@@ -163,3 +164,15 @@ export const getBlogComments = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+
+
+export const generateContent = async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        const content = await main(prompt + ' Generate a blog content for this topic in simple text format')
+        res.json({success: true, content})
+    } catch (error) {
+        res.json({success: false, message: error.message})
+    }
+}
