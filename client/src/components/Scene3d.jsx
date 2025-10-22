@@ -1,9 +1,45 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
+import * as THREE from "three";
 
 const RotatingCube = () => {
   const meshRef = useRef();
+
+  const geometry = useMemo(() => {
+    const geo = new THREE.IcosahedronGeometry(1.5);
+
+
+    // Define 8 unique cube corners by index (bitmask: x,y,z > 0)
+    // We'll make corners 0,1,2 black — others blue
+    const cornerColors = [
+      new THREE.Color(0x000000), // 000 -> black
+      new THREE.Color(0x000000), // 100 -> black
+      new THREE.Color(0x000000), // 100 -> black
+      new THREE.Color(0x000000), // 010 -> black
+      new THREE.Color("#2563EB"), // 110
+      new THREE.Color(0x000000), // 010 -> black
+      new THREE.Color("#2563EB"), // 110
+      new THREE.Color(0x000000), // 010 -> black
+    ];
+
+    const pos = geo.attributes.position;
+    const colors = [];
+
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const z = pos.getZ(i);
+
+      const cornerIndex = (x > 0 ? 1 : 0) + (y > 0 ? 2 : 0) + (z > 0 ? 4 : 0);
+
+      const c = cornerColors[cornerIndex];
+      colors.push(c.r, c.g, c.b);
+    }
+
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    return geo;
+  }, []);
 
   useFrame(() => {
     if (meshRef.current) {
@@ -12,19 +48,9 @@ const RotatingCube = () => {
     }
   });
 
-  // New colors selected to match the website's dark abstract shape and bright blue accents.
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry args={[2, 2, 2]} />
-      <meshPhysicalMaterial
-        color="#111827" // Very Dark Blue-Black (Matches the abstract visual)
-        metalness={0.95}
-        roughness={0.15}
-        clearcoat={1}
-        clearcoatRoughness={0.05}
-        emissive="#2563EB" // Bright Blue (Matches the website's brand color/buttons)
-        emissiveIntensity={0.5} // Increased intensity for a noticeable blue edge glow
-      />
+    <mesh ref={meshRef} geometry={geometry}>
+      <meshStandardMaterial vertexColors metalness={0.4} roughness={0.6} />
     </mesh>
   );
 };
@@ -35,18 +61,14 @@ const Scene3D = () => {
       camera={{ position: [0, 0, 5], fov: 45 }}
       style={{ width: "100%", height: "100%" }}
     >
-      {/* Lighting: Adjusted for a cleaner, modern look using white/light blue */}
-      <ambientLight intensity={0.6} color="#FFFFFF" />
-      <directionalLight position={[4, 4, 6]} intensity={1.2} color="#BFDBFE" />
-      <pointLight position={[-5, -5, 5]} intensity={1} color="#3B82F6" />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[4, 4, 6]} intensity={1.2} />
+      <pointLight position={[-5, -5, 5]} intensity={1.0} />
 
-      {/* Main Object */}
       <RotatingCube />
 
-      {/* Environment: sleek & neutral (kept 'dawn' as it provides soft highlights) */}
       <Environment preset="dawn" background={false} />
 
-      {/* Smooth camera motion */}
       <OrbitControls
         enableZoom={false}
         enablePan={false}
