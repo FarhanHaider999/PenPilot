@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Playfair:ital,opsz,wght@0,5..1200,300..900;1,5..1200,300..900&display=swap');
 @import "tailwindcss";
 
-
-/* Outfit Font on Whole App */
+/* Apply Outfit globally for body text */
 * {
-    font-family: "Outfit", sans-serif;
+  font-family: "Outfit", sans-serif;
 }
 
-/* Hiding Scrollbar */
+/* Headings — Hero H1 can use Playfair */
+.hero-heading {
+  font-family: "Playfair", serif;
+  font-weight: 700; /* bold for premium look */
+}
+
+/* Hiding Scrollbar if needed */
 /* ::-webkit-scrollbar {
     display: none;
 } */
 
 /* Custom Colors */
-@theme {
-    --color-primary: #5044E5
+:root {
+  --color-primary: #5044E5;
 }
-
-
-
-
-

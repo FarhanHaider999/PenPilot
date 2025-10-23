@@ -1,139 +1,88 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Facebook, Twitter, Github } from "lucide-react";
+import { Mail, Facebook, Twitter, Github, ArrowUp } from "lucide-react";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const [showScroll, setShowScroll] = useState(false);
+
+  // Show button when scrolled down
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScroll(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Smooth scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <footer className="bg-white border-t border-gray-200 mt-24">
-      <div className="max-w-7xl mx-auto px-8 sm:px-20 xl:px-32 py-12">
+    <footer className="relative mt-24 bg-gradient-to-b from-blue-50 via-white to-white text-gray-800 overflow-hidden">
+      {/* Soft radial glow */}
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.15),transparent_60%)] pointer-events-none" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-8 sm:px-20 xl:px-32 py-16">
         {/* Top Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+        <div className="flex flex-col items-center text-center">
           {/* Logo */}
-          <div>
-            <h1
-              onClick={() => navigate("/")}
-              className="text-3xl font-extrabold tracking-tight text-gray-900 cursor-pointer"
-            >
-              <span className="text-blue-600">Pen</span>Pilot
-            </h1>
-            <p className="text-gray-500 mt-3 max-w-sm">
-              A place where ideas take flight — explore inspiring blogs,
-              tutorials, and stories crafted by creators for creators.
-            </p>
-          </div>
+          <h1
+            onClick={() => navigate("/")}
+            className="text-4xl font-extrabold tracking-tight text-gray-900 cursor-pointer"
+          >
+            <span className="text-blue-600">Pen</span>Pilot
+          </h1>
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-10">
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-3">Explore</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    Home
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    Blogs
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    About
-                  </button>
-                </li>
-              </ul>
-            </div>
+          {/* Description */}
+          <p className="mt-4 text-gray-600 max-w-md leading-relaxed">
+            Where ideas take flight — explore inspiring blogs, tutorials, and
+            stories crafted by creators for creators.
+          </p>
 
-            <div>
-              <h3 className="text-gray-900 font-semibold mb-3">Resources</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    Contact
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    Privacy Policy
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="hover:text-blue-600 transition"
-                  >
-                    Terms of Service
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Socials */}
-          <div>
-            <h3 className="text-gray-900 font-semibold mb-3">Connect</h3>
-            <div className="flex gap-4">
+          {/* Social Icons */}
+          <div className="flex gap-4 mt-8">
+            {[
+              { icon: Mail, link: "mailto:hello@penpilot.com" },
+              { icon: Facebook, link: "https://facebook.com" },
+              { icon: Twitter, link: "https://twitter.com" },
+              { icon: Github, link: "https://github.com" },
+            ].map(({ icon: Icon, link }, i) => (
               <a
-                href="mailto:hello@penpilot.com"
-                className="text-gray-600 hover:text-blue-600 transition"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-              <a
-                href="https://facebook.com"
+                key={i}
+                href={link}
                 target="_blank"
                 rel="noreferrer"
-                className="text-gray-600 hover:text-blue-600 transition"
+                className="p-2 rounded-full bg-white shadow-sm border border-gray-100 text-gray-600 hover:text-blue-600 hover:shadow-lg hover:shadow-blue-100 transform hover:-translate-y-1 transition-all duration-300"
               >
-                <Facebook className="w-5 h-5" />
+                <Icon className="w-5 h-5" />
               </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-gray-600 hover:text-blue-600 transition"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-gray-600 hover:text-blue-600 transition"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-200 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
+        <div className="border-t border-gray-200 mt-12 pt-8 text-center text-sm text-gray-500">
           <p>© {new Date().getFullYear()} PenPilot. All rights reserved.</p>
-          <p>
+          <p className="mt-2">
             Built with ❤️ by{" "}
             <span className="text-blue-600 font-semibold">Farhan Haider</span>
           </p>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScroll && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-blue-300 transition-all duration-300 transform hover:-translate-y-1"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
     </footer>
   );
 };

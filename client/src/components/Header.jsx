@@ -30,16 +30,18 @@ const Header = () => {
           className="inline-flex items-center justify-center lg:justify-start gap-3 px-6 border border-gray-200 bg-white/80 backdrop-blur-md rounded-full text-sm text-gray-700 font-medium shadow-sm hover:shadow-md transition-all"
         >
           <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          <p>Modern Blog Platform with AI</p>
+          <p>AI-Powered Content Platform</p>
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl sm:text-7xl font-bold mt-8 leading-tight tracking-tight text-gray-900"
+          className="hero-heading text-5xl sm:text-7xl leading-tight tracking-tight text-gray-900"
         >
-          Create Stunning <span className="text-blue-600">Blog Posts</span> with AI
+          Let <span className="text-blue-600">AI</span> Amplify Your{" "}
+          <span className="text-blue-600">Words</span> and Help Your Ideas Reach{" "}
+          <span className="text-blue-600">Readers</span>.
         </motion.h1>
 
         <motion.p
