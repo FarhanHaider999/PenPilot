@@ -50,8 +50,7 @@ const Header = () => {
           transition={{ delay: 0.3, duration: 0.8 }}
           className="mt-6 sm:mt-8 max-w-2xl text-gray-600 text-base sm:text-lg leading-relaxed mx-auto lg:mx-0"
         >
-          Write, edit, and publish beautiful content powered by artificial
-          intelligence. Transform your ideas into engaging stories effortlessly.
+          Write. Edit. Publish. Content that inspires, powered by AI. Transform your ideas into engaging stories effortlessly.
         </motion.p>
 
         <motion.form
