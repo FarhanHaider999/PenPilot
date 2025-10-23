@@ -56,7 +56,7 @@ const BlogCard = ({ blog }) => {
     mass: 0.8,
   });
 
-  const opacity = useTransform(springProgress, [0, 1], [0, 1]);
+  // const opacity = useTransform(springProgress, [0, 1], [0, 1]);
   const translateY = useTransform(springProgress, [0, 1], [80, 0]);
   const scale = useTransform(springProgress, [0, 1], [0.95, 1]);
 
@@ -67,7 +67,7 @@ const BlogCard = ({ blog }) => {
         rotateX,
         rotateY,
         transformStyle: "preserve-3d",
-        opacity,
+        // opacity,
         y: translateY,
         scale,
       }}
