@@ -9,26 +9,30 @@ import {
   InputAdornment,
   useTheme,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Visibility, VisibilityOff, Home } from "@mui/icons-material";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { axios, login } = useAppContext(); // ✅ use login() from context
+  const { axios, login } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const { data } = await axios.post("/api/admin/login", { email, password });
+      const { data } = await axios.post("/api/admin/login", {
+        email,
+        password,
+      });
 
       if (data.success && data.token) {
-        login(data.token); // ✅ uses context login handler
+        login(data.token);
       } else {
         toast.error(data.message || "Invalid credentials");
       }
@@ -70,7 +74,7 @@ const Login = () => {
           fontWeight="700"
           sx={{
             mb: 3,
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            background: `linear-gradient(45deg, #4dabf5, #1e3a8a)`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -126,14 +130,30 @@ const Login = () => {
               fontWeight: 600,
               fontSize: "1rem",
               textTransform: "none",
-              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              background: `linear-gradient(45deg, #4dabf5, #1e3a8a)`,
               boxShadow: "0 4px 14px rgba(0,0,0,0.2)",
               "&:hover": {
-                background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+                background: `linear-gradient(45deg, #1e3a8a, #0d1f4a)`,
               },
             }}
           >
             Login
+          </Button>
+
+          {/* Back to Home Button */}
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<Home />} // add the icon here
+            sx={{
+              mt: 2,
+              py: 1.2,
+              borderRadius: 3,
+              textTransform: "none",
+            }}
+            onClick={() => navigate("/")}
+          >
+            Back to Home
           </Button>
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
